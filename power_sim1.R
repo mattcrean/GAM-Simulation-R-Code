@@ -1,8 +1,7 @@
 # EVALUATING SIGNIFICANCE TESTS IN GENERALISED ADDITIVE MODELS -----------------
 # POWER SIMULATION SCENARIO 1
-
+{
 library(mgcv)
-library(xtable)
 twopi <- 2*pi
 
 ## 1.1 EFFECT OF SAMPLE SIZE ---------------------------------------------------
@@ -16,7 +15,7 @@ twopi <- 2*pi
   response <- c("Gaussian", "Binomial", "Poisson", "Gamma")
   
   # prepare plot grid and pdf file to be saved to
-  pdf("sim_power_11_plot3.pdf", width = 12, height = 4)
+  pdf("sim_power1_n.pdf", width = 12, height = 4)
   par(mfrow=c(1,3))
   
   for (i in 1:length(n_values))
@@ -76,7 +75,7 @@ twopi <- 2*pi
         # form data frame
         sim <- data.frame(x = x_mat[, k], y = y_mat[, k])
         
-        # fit GAM and GLM under current response family
+        # fit GAM under current response family
         if (response_family == "Gaussian")
         {
           sim.gam <- mgcv::gam(y ~ s(x, k=10),
@@ -155,7 +154,7 @@ twopi <- 2*pi
   response_colour <- c("black", "red", "blue", "darkgreen")
   
   # prepare plot grid and pdf file to be saved to
-  pdf("sim_power_12_plot2.pdf", width = 8, height = 6.5)
+  pdf("sim_power1_h.pdf", width = 8, height = 6.5)
   par(mfrow=c(2,2))
   
   # DGP for all responses
@@ -226,7 +225,7 @@ twopi <- 2*pi
       sim <- data.frame(x = x_mat[, k], y_sin = y_sin_mat[, k], 
                         y_cubic = y_cubic_mat[, k])
       
-      # fit GAM and GLM under current response family
+      # fit GAM under current response family
       if (response_family == "Gaussian")
       {
         sim.gam <- mgcv::gam(y_sin ~ s(x, k=10),
@@ -357,7 +356,7 @@ twopi <- 2*pi
   response_colour <- c("black", "red", "blue", "darkgreen")
   
   # prepare plot grid and pdf file to be saved to
-  pdf("sim_power_13_plot2.pdf", width = 8, height = 6.5)
+  pdf("sim_power1_delta.pdf", width = 8, height = 6.5)
   par(mfrow=c(2,2))
   
   # DGP for all responses
@@ -430,7 +429,7 @@ twopi <- 2*pi
         # form data frame
         sim <- data.frame(x = x_mat[, k], y = y_mat[, k])
         
-        # fit GAM and GLM under current response family
+        # fit GAM under current response family
         if (response_family == "Gaussian")
         {
           sim.gam <- mgcv::gam(y ~ s(x, k=10),
@@ -491,4 +490,4 @@ twopi <- 2*pi
   
 } # END OF SIMULATION 1.3
 
-
+}

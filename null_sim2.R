@@ -1,8 +1,7 @@
 # EVALUATING SIGNIFICANCE TESTS IN GENERALISED ADDITIVE MODELS -----------------
 # SIMULATION SCENARIO 2
-
+{
 library(mgcv)
-library(xtable)
 
 # MCSE bands for all plots (given m=5000)
 {
@@ -13,6 +12,7 @@ library(xtable)
   lower <- p_mcse_plot - 1.96*mcse
 }
 
+results_list_n <- vector("list", 4)
 
 # GAUSSIAN CASE ----------------------------------------------------------------
 {
@@ -68,61 +68,24 @@ library(xtable)
     }
     # write row of data frame for current sample size
     row_df <- data.frame(
+      Response   = "Gaussian",
       n          = n,
-      F1x        = mean(p_values_x <= 0.01),
-      F5x        = mean(p_values_x <= 0.05),
-      F10x       = mean(p_values_x <= 0.1),
-      edf_meanx  = mean(edf_x),
-      edf_sdx    = sd(edf_x),
-      F1z        = mean(p_values_z <= 0.01),
-      F5z        = mean(p_values_z <= 0.05),
-      F10z       = mean(p_values_z <= 0.1),
-      edf_meanz  = mean(edf_z),
-      edf_sdz    = sd(edf_z)
+      Smooth     = c("f1(x)", "f2(z)"),
+      F1         = c(mean(p_values_x <= 0.01), mean(p_values_z <= 0.01)),
+      F5         = c(mean(p_values_x <= 0.05), mean(p_values_z <= 0.05)),
+      F10        = c(mean(p_values_x <= 0.10), mean(p_values_z <= 0.10)),
+      edf_mean   = c(mean(edf_x), mean(edf_z)),
+      edf_sd     = c(sd(edf_x), sd(edf_z))
     )
     # write this row to corresponding element of list
     results_list[[i]] <- row_df
     
-    # prepare plot grid and pdf file to be saved to
-    title <- paste0("sim21_n", n_values[i], ".pdf")
-    pdf(title, width = 8, height = 4)
-    par(mfrow=c(1,2))
-    
-    # export plot
-    plot(ecdf(p_values_x),
-         xlim = c(0, 0.1),
-         ylim = c(0, 0.1),
-         main = paste0("s(x)"),
-         xlab = "p-value", 
-         ylab = "Empirical CDF")
-    
-    # reference line of the CDF of U(0,1)
-    abline(0, 1, lty=2)
-    
-    # MCSE bands
-    lines(p_mcse_plot,upper,lty=3,col="grey40")
-    lines(p_mcse_plot,lower,lty=3,col="grey40")
-    
-    # export plot
-    plot(ecdf(p_values_z),
-         xlim = c(0, 0.1),
-         ylim = c(0, 0.1),
-         main = paste0("s(z)"),
-         xlab = "p-value", 
-         ylab = "Empirical CDF")
-    
-    # reference line of the CDF of U(0,1)
-    abline(0, 1, lty = 2)
-    
-    # MCSE bands
-    lines(p_mcse_plot,upper,lty=3,col="grey40")
-    lines(p_mcse_plot,lower,lty=3,col="grey40")
-    
-    dev.off()
-    
   }
+  
 } # END OF SIMULATION 2.1
 
+results_list_n[[1]] <- results_list
+  
 ## 2.2 EFFECT OF ERROR TERM VARIANCE -------------------------------------------
 {
   # set seed for reproducibility
@@ -137,7 +100,7 @@ library(xtable)
   sigma_values <- c(0.25, 0.5, 1, 2, 5)
   
   # prepare results vector
-  results_list <- vector("list", length(sigma_values))
+  results_list_gaussian <- vector("list", length(sigma_values))
   
   # DGP
   x_mat <- matrix(runif(n * m, min = 0, max = 1), nrow = n, ncol = m)
@@ -177,59 +140,20 @@ library(xtable)
     }
     # write row of data frame for current value of sigma
     row_df <- data.frame(
+      Response   = "Gaussian",
       sigma      = sigma,
-      F1x        = mean(p_values_x <= 0.01),
-      F5x        = mean(p_values_x <= 0.05),
-      F10x       = mean(p_values_x <= 0.1),
-      edf_meanx  = mean(edf_x),
-      edf_sdx    = sd(edf_x),
-      F1z        = mean(p_values_z <= 0.01),
-      F5z        = mean(p_values_z <= 0.05),
-      F10z       = mean(p_values_z <= 0.1),
-      edf_meanz  = mean(edf_z),
-      edf_sdz    = sd(edf_z)
+      Smooth     = c("f1(x)", "f2(z)"),
+      F1         = c(mean(p_values_x <= 0.01), mean(p_values_z <= 0.01)),
+      F5         = c(mean(p_values_x <= 0.05), mean(p_values_z <= 0.05)),
+      F10        = c(mean(p_values_x <= 0.10), mean(p_values_z <= 0.10)),
+      edf_mean   = c(mean(edf_x), mean(edf_z)),
+      edf_sd     = c(sd(edf_x), sd(edf_z))
     )
     # write this row to corresponding element of list
-    results_list[[i]] <- row_df
-    
-    # prepare plot grid and pdf file to be saved to
-    title <- paste0("sim22_sigma", sigma_values[i], ".pdf")
-    pdf(title, width = 8, height = 4)
-    par(mfrow=c(1,2))
-    
-    # export plot
-    plot(ecdf(p_values_x),
-         xlim = c(0, 0.1),
-         ylim = c(0, 0.1),
-         main = paste0("s(x)"),
-         xlab = "p-value", 
-         ylab = "Empirical CDF")
-    
-    # reference line of the CDF of U(0,1)
-    abline(0, 1, lty=2)
-    
-    # MCSE bands
-    lines(p_mcse_plot,upper,lty=3,col="grey40")
-    lines(p_mcse_plot,lower,lty=3,col="grey40")
-    
-    # export plot
-    plot(ecdf(p_values_z),
-         xlim = c(0, 0.1),
-         ylim = c(0, 0.1),
-         main = paste0("s(z)"),
-         xlab = "p-value", 
-         ylab = "Empirical CDF")
-    
-    # reference line of the CDF of U(0,1)
-    abline(0, 1, lty = 2)
-    
-    # MCSE bands
-    lines(p_mcse_plot,upper,lty=3,col="grey40")
-    lines(p_mcse_plot,lower,lty=3,col="grey40")
-    
-    dev.off()
+    results_list_gaussian[[i]] <- row_df
   }
 } # END OF SIMULATION 2.2
+
 } # END OF GAUSSIAN SIMULATION
 
 
@@ -289,61 +213,24 @@ library(xtable)
     }
     # write row of data frame for current sample size
     row_df <- data.frame(
+      Response   = "Binomial",
       n          = n,
-      F1x        = mean(p_values_x <= 0.01),
-      F5x        = mean(p_values_x <= 0.05),
-      F10x       = mean(p_values_x <= 0.1),
-      edf_meanx  = mean(edf_x),
-      edf_sdx    = sd(edf_x),
-      F1z        = mean(p_values_z <= 0.01),
-      F5z        = mean(p_values_z <= 0.05),
-      F10z       = mean(p_values_z <= 0.1),
-      edf_meanz  = mean(edf_z),
-      edf_sdz    = sd(edf_z)
+      Smooth     = c("f1(x)", "f2(z)"),
+      F1         = c(mean(p_values_x <= 0.01), mean(p_values_z <= 0.01)),
+      F5         = c(mean(p_values_x <= 0.05), mean(p_values_z <= 0.05)),
+      F10        = c(mean(p_values_x <= 0.10), mean(p_values_z <= 0.10)),
+      edf_mean   = c(mean(edf_x), mean(edf_z)),
+      edf_sd     = c(sd(edf_x), sd(edf_z))
     )
     # write this row to corresponding element of list
     results_list[[i]] <- row_df
     
-    # prepare plot grid and pdf file to be saved to
-    title <- paste0("sim21_n", n_values[i], ".pdf")
-    pdf(title, width = 8, height = 4)
-    par(mfrow=c(1,2))
-    
-    # export plot
-    plot(ecdf(p_values_x),
-         xlim = c(0, 0.1),
-         ylim = c(0, 0.1),
-         main = paste0("s(x)"),
-         xlab = "p-value", 
-         ylab = "Empirical CDF")
-    
-    # reference line of the CDF of U(0,1)
-    abline(0, 1, lty=2)
-    
-    # MCSE bands
-    lines(p_mcse_plot,upper,lty=3,col="grey40")
-    lines(p_mcse_plot,lower,lty=3,col="grey40")
-    
-    # export plot
-    plot(ecdf(p_values_z),
-         xlim = c(0, 0.1),
-         ylim = c(0, 0.1),
-         main = paste0("s(z)"),
-         xlab = "p-value", 
-         ylab = "Empirical CDF")
-    
-    # reference line of the CDF of U(0,1)
-    abline(0, 1, lty = 2)
-    
-    # MCSE bands
-    lines(p_mcse_plot,upper,lty=3,col="grey40")
-    lines(p_mcse_plot,lower,lty=3,col="grey40")
-    
-    dev.off()
-    
   }
+  
 } # END OF SIMULATION 2.1
 
+results_list_n[[2]] <- results_list
+  
 ## 2.2 EFFECT OF SUCCESS PROBABILITY FOR Y -------------------------------------
 {
   # set seed for reproducibility
@@ -358,7 +245,7 @@ library(xtable)
   success_values <- c(0.3, 0.5, 0.7)
   
   # prepare results vector
-  results_list <- vector("list", length(success_values))
+  results_list_binomial <- vector("list", length(success_values))
   
   # DGP
   x_mat <- matrix(runif(n * m, min = 0, max = 1), nrow = n, ncol = m)
@@ -398,61 +285,21 @@ library(xtable)
     }
     # write row of data frame for q
     row_df <- data.frame(
-      success    = success,
-      F1x        = mean(p_values_x <= 0.01),
-      F5x        = mean(p_values_x <= 0.05),
-      F10x       = mean(p_values_x <= 0.1),
-      edf_meanx  = mean(edf_x),
-      edf_sdx    = sd(edf_x),
-      F1z        = mean(p_values_z <= 0.01),
-      F5z        = mean(p_values_z <= 0.05),
-      F10z       = mean(p_values_z <= 0.1),
-      edf_meanz  = mean(edf_z),
-      edf_sdz    = sd(edf_z)
+      Response   = "Binomial",
+      Success    = success,
+      Smooth     = c("f1(x)", "f2(z)"),
+      F1         = c(mean(p_values_x <= 0.01), mean(p_values_z <= 0.01)),
+      F5         = c(mean(p_values_x <= 0.05), mean(p_values_z <= 0.05)),
+      F10        = c(mean(p_values_x <= 0.10), mean(p_values_z <= 0.10)),
+      edf_mean   = c(mean(edf_x), mean(edf_z)),
+      edf_sd     = c(sd(edf_x), sd(edf_z))
     )
     # write this row to corresponding element of list
-    results_list[[i]] <- row_df
-    
-    # prepare plot grid and pdf file to be saved to
-    title <- paste0("sim22_success", success, ".pdf")
-    pdf(title, width = 8, height = 4)
-    par(mfrow=c(1,2))
-    
-    # export plot
-    plot(ecdf(p_values_x),
-         xlim = c(0, 0.1),
-         ylim = c(0, 0.1),
-         main = paste0("s(x)"),
-         xlab = "p-value", 
-         ylab = "Empirical CDF")
-    
-    # reference line of the CDF of U(0,1)
-    abline(0, 1, lty=2)
-    
-    # MCSE bands
-    lines(p_mcse_plot,upper,lty=3,col="grey40")
-    lines(p_mcse_plot,lower,lty=3,col="grey40")
-    
-    # export plot
-    plot(ecdf(p_values_z),
-         xlim = c(0, 0.1),
-         ylim = c(0, 0.1),
-         main = paste0("s(z)"),
-         xlab = "p-value", 
-         ylab = "Empirical CDF")
-    
-    # reference line of the CDF of U(0,1)
-    abline(0, 1, lty = 2)
-    
-    # MCSE bands
-    lines(p_mcse_plot,upper,lty=3,col="grey40")
-    lines(p_mcse_plot,lower,lty=3,col="grey40")
-    
-    dev.off()
+    results_list_binomial[[i]] <- row_df
   }
 } # END OF SIMULATION 2.2
-} # END OF BINOMIAL SIMULATION
 
+} # END OF BINOMIAL SIMULATION
 
 
 # POISSON CASE -----------------------------------------------------------------
@@ -509,60 +356,23 @@ library(xtable)
     }
     # write row of data frame for current sample size
     row_df <- data.frame(
+      Response   = "Poisson",
       n          = n,
-      F1x        = mean(p_values_x <= 0.01),
-      F5x        = mean(p_values_x <= 0.05),
-      F10x       = mean(p_values_x <= 0.1),
-      edf_meanx  = mean(edf_x),
-      edf_sdx    = sd(edf_x),
-      F1z        = mean(p_values_z <= 0.01),
-      F5z        = mean(p_values_z <= 0.05),
-      F10z       = mean(p_values_z <= 0.1),
-      edf_meanz  = mean(edf_z),
-      edf_sdz    = sd(edf_z)
+      Smooth     = c("f1(x)", "f2(z)"),
+      F1         = c(mean(p_values_x <= 0.01), mean(p_values_z <= 0.01)),
+      F5         = c(mean(p_values_x <= 0.05), mean(p_values_z <= 0.05)),
+      F10        = c(mean(p_values_x <= 0.10), mean(p_values_z <= 0.10)),
+      edf_mean   = c(mean(edf_x), mean(edf_z)),
+      edf_sd     = c(sd(edf_x), sd(edf_z))
     )
     # write this row to corresponding element of list
     results_list[[i]] <- row_df
     
-    # prepare plot grid and pdf file to be saved to
-    title <- paste0("sim21_n", n_values[i], ".pdf")
-    pdf(title, width = 8, height = 4)
-    par(mfrow=c(1,2))
-    
-    # export plot
-    plot(ecdf(p_values_x),
-         xlim = c(0, 0.1),
-         ylim = c(0, 0.1),
-         main = paste0("s(x)"),
-         xlab = "p-value", 
-         ylab = "Empirical CDF")
-    
-    # reference line of the CDF of U(0,1)
-    abline(0, 1, lty=2)
-    
-    # MCSE bands
-    lines(p_mcse_plot,upper,lty=3,col="grey40")
-    lines(p_mcse_plot,lower,lty=3,col="grey40")
-    
-    # export plot
-    plot(ecdf(p_values_z),
-         xlim = c(0, 0.1),
-         ylim = c(0, 0.1),
-         main = paste0("s(z)"),
-         xlab = "p-value", 
-         ylab = "Empirical CDF")
-    
-    # reference line of the CDF of U(0,1)
-    abline(0, 1, lty = 2)
-    
-    # MCSE bands
-    lines(p_mcse_plot,upper,lty=3,col="grey40")
-    lines(p_mcse_plot,lower,lty=3,col="grey40")
-    
-    dev.off()
-    
   }
+  
 } # END OF SIMULATION 2.1
+  
+results_list_n[[3]] <- results_list
 
 ## 2.2 EFFECT OF MEAN OF POISSON DISTRIBUTION ----------------------------------
 {
@@ -578,7 +388,7 @@ library(xtable)
   lambda_values <- c(3, 5, 7, 10)
   
   # prepare results vector
-  results_list <- vector("list", length(lambda_values))
+  results_list_poisson <- vector("list", length(lambda_values))
   
   # DGP
   x_mat <- matrix(runif(n * m, 0, 1), nrow = n, ncol = m)
@@ -618,59 +428,20 @@ library(xtable)
     }
     # write row of data frame
     row_df <- data.frame(
-      lam        = lam,
-      F1x        = mean(p_values_x <= 0.01),
-      F5x        = mean(p_values_x <= 0.05),
-      F10x       = mean(p_values_x <= 0.1),
-      edf_meanx  = mean(edf_x),
-      edf_sdx    = sd(edf_x),
-      F1z        = mean(p_values_z <= 0.01),
-      F5z        = mean(p_values_z <= 0.05),
-      F10z       = mean(p_values_z <= 0.1),
-      edf_meanz  = mean(edf_z),
-      edf_sdz    = sd(edf_z)
+      Response   = "Poisson",
+      Mean       = lam,
+      Smooth     = c("f1(x)", "f2(z)"),
+      F1         = c(mean(p_values_x <= 0.01), mean(p_values_z <= 0.01)),
+      F5         = c(mean(p_values_x <= 0.05), mean(p_values_z <= 0.05)),
+      F10        = c(mean(p_values_x <= 0.10), mean(p_values_z <= 0.10)),
+      edf_mean   = c(mean(edf_x), mean(edf_z)),
+      edf_sd     = c(sd(edf_x), sd(edf_z))
     )
     # write this row to corresponding element of list
-    results_list[[i]] <- row_df
-    
-    # prepare plot grid and pdf file to be saved to
-    title <- paste0("sim22_lambda", lam, ".pdf")
-    pdf(title, width = 8, height = 4)
-    par(mfrow=c(1,2))
-    
-    # export plot
-    plot(ecdf(p_values_x),
-         xlim = c(0, 0.1),
-         ylim = c(0, 0.1),
-         main = paste0("s(x)"),
-         xlab = "p-value", 
-         ylab = "Empirical CDF")
-    
-    # reference line of the CDF of U(0,1)
-    abline(0, 1, lty=2)
-    
-    # MCSE bands
-    lines(p_mcse_plot,upper,lty=3,col="grey40")
-    lines(p_mcse_plot,lower,lty=3,col="grey40")
-    
-    # export plot
-    plot(ecdf(p_values_z),
-         xlim = c(0, 0.1),
-         ylim = c(0, 0.1),
-         main = paste0("s(z)"),
-         xlab = "p-value", 
-         ylab = "Empirical CDF")
-    
-    # reference line of the CDF of U(0,1)
-    abline(0, 1, lty = 2)
-    
-    # MCSE bands
-    lines(p_mcse_plot,upper,lty=3,col="grey40")
-    lines(p_mcse_plot,lower,lty=3,col="grey40")
-    
-    dev.off()
+    results_list_poisson[[i]] <- row_df
   }
 } # END OF SIMULATION 2.2
+
 } # END OF POISSON SIMULATION
 
 
@@ -731,60 +502,24 @@ library(xtable)
     }
     # write row of data frame for current sample size
     row_df <- data.frame(
+      Response   = "Gamma",
       n          = n,
-      F1x        = mean(p_values_x <= 0.01),
-      F5x        = mean(p_values_x <= 0.05),
-      F10x       = mean(p_values_x <= 0.1),
-      edf_meanx  = mean(edf_x),
-      edf_sdx    = sd(edf_x),
-      F1z        = mean(p_values_z <= 0.01),
-      F5z        = mean(p_values_z <= 0.05),
-      F10z       = mean(p_values_z <= 0.1),
-      edf_meanz  = mean(edf_z),
-      edf_sdz    = sd(edf_z)
+      Smooth     = c("f1(x)", "f2(z)"),
+      F1         = c(mean(p_values_x <= 0.01), mean(p_values_z <= 0.01)),
+      F5         = c(mean(p_values_x <= 0.05), mean(p_values_z <= 0.05)),
+      F10        = c(mean(p_values_x <= 0.10), mean(p_values_z <= 0.10)),
+      edf_mean   = c(mean(edf_x), mean(edf_z)),
+      edf_sd     = c(sd(edf_x), sd(edf_z))
     )
     # write this row to corresponding element of list
     results_list[[i]] <- row_df
     
-    # prepare plot grid and pdf file to be saved to
-    title <- paste0("sim21_n", n_values[i], ".pdf")
-    pdf(title, width = 8, height = 4)
-    par(mfrow=c(1,2))
-    
-    # export plot
-    plot(ecdf(p_values_x),
-         xlim = c(0, 0.1),
-         ylim = c(0, 0.1),
-         main = paste0("s(x)"),
-         xlab = "p-value", 
-         ylab = "Empirical CDF")
-    
-    # reference line of the CDF of U(0,1)
-    abline(0, 1, lty=2)
-    
-    # MCSE bands
-    lines(p_mcse_plot,upper,lty=3,col="grey40")
-    lines(p_mcse_plot,lower,lty=3,col="grey40")
-    
-    # export plot
-    plot(ecdf(p_values_z),
-         xlim = c(0, 0.1),
-         ylim = c(0, 0.1),
-         main = paste0("s(z)"),
-         xlab = "p-value", 
-         ylab = "Empirical CDF")
-    
-    # reference line of the CDF of U(0,1)
-    abline(0, 1, lty = 2)
-    
-    # MCSE bands
-    lines(p_mcse_plot,upper,lty=3,col="grey40")
-    lines(p_mcse_plot,lower,lty=3,col="grey40")
-    
-    dev.off()
   }
+  
 } # END OF SIMULATION 2.1
 
+results_list_n[[4]] <- results_list
+  
 ## 2.2 EFFECT OF MEAN (AND VARIANCE) OF GAMMA DISTRIBUTION ---------------------
 {
   # set seed for reproducibility
@@ -800,7 +535,7 @@ library(xtable)
   mu_values <- c(3, 5, 7, 10)
   
   # prepare results vector
-  results_list <- vector("list", length(mu_values))
+  results_list_gamma <- vector("list", length(mu_values))
   
   # DGP
   x_mat <- matrix(runif(n * m, 0, 1), nrow = n, ncol = m)
@@ -818,7 +553,7 @@ library(xtable)
     p_values_z <- numeric(m)
     edf_z <- numeric(m)
     
-    # DGP for current probability of success
+    # DGP for current Gamma mean
     y_mat <- matrix(rgamma(n * m, shape = kappa, scale = mu / kappa),
                     nrow = n, ncol = m)
     
@@ -841,48 +576,138 @@ library(xtable)
     }
     # write row of data frame
     row_df <- data.frame(
-      mu         = mu,
-      F1x        = mean(p_values_x <= 0.01),
-      F5x        = mean(p_values_x <= 0.05),
-      F10x       = mean(p_values_x <= 0.1),
-      edf_meanx  = mean(edf_x),
-      edf_sdx    = sd(edf_x),
-      F1z        = mean(p_values_z <= 0.01),
-      F5z        = mean(p_values_z <= 0.05),
-      F10z       = mean(p_values_z <= 0.1),
-      edf_meanz  = mean(edf_z),
-      edf_sdz    = sd(edf_z)
+      Response   = "Gamma",
+      Mean       = mu,
+      Smooth     = c("f1(x)", "f2(z)"),
+      F1         = c(mean(p_values_x <= 0.01), mean(p_values_z <= 0.01)),
+      F5         = c(mean(p_values_x <= 0.05), mean(p_values_z <= 0.05)),
+      F10        = c(mean(p_values_x <= 0.10), mean(p_values_z <= 0.10)),
+      edf_mean   = c(mean(edf_x), mean(edf_z)),
+      edf_sd     = c(sd(edf_x), sd(edf_z))
     )
     # write this row to corresponding element of list
-    results_list[[i]] <- row_df
+    results_list_gamma[[i]] <- row_df
+  }
+} # END OF SIMULATION 2.2
+
+} # END OF GAMMA SIMULATION
+
+
+
+# ONE VS TWO FITTED NULL SMOOTHS -----------------------------------------------
+{
+  # parameters for current simulation
+  set.seed(511)
+  m <- 5000
+  n <- 500
+  lambda <- "REML"
+  response <- c("Gaussian", "Binomial", "Poisson", "Gamma")
+  
+  # prepare plot grid and pdf file to be saved to
+  pdf("sim2_null_comp.pdf", width = 8, height = 6.5)
+  par(mfrow=c(2,2))
+  
+  # DGP for all responses
+  x_mat <- matrix(runif(n * m, min = 0, max = 1), nrow = n, ncol = m)
+  z_mat <- matrix(runif(n * m, min = 0, max = 1), nrow = n, ncol = m)
+  
+  for (j in 1:length(response))
+  {
+    response_family <- response[j]
+    p_values_x_1 <- numeric(m)
+    p_values_x_2 <- numeric(m)
     
-    # prepare plot grid and pdf file to be saved to
-    title <- paste0("sim22_mu", mu, ".pdf")
-    pdf(title, width = 8, height = 4)
-    par(mfrow=c(1,2))
+    if (response_family == "Gaussian")
+    {
+      y_mat <- matrix(rnorm(n * m, mean = 0, sd = 0.5), nrow = n, ncol = m)
+    }
     
+    if (response_family == "Binomial")
+    {
+      y_mat <- matrix(rbinom(n * m, size = 1, prob = 0.5), nrow = n, ncol = m)
+    }
+    
+    if (response_family == "Poisson")
+    {
+      y_mat <- matrix(rpois(n * m, lambda = 5), nrow = n, ncol = m)
+    }
+    
+    if (response_family == "Gamma")
+    {
+      y_mat <- matrix(rgamma(n * m, shape = 5, scale = 5 / 5),
+                      nrow = n, ncol = m)
+    }
+    
+    # loop over number of simulation replications
+    for (k in 1:m)
+    {
+      # form data frame
+      sim <- data.frame(x = x_mat[, k], y = y_mat[, k], z = z_mat[, k])
+      
+      # fit GAM and GLM under current response family
+      if (response_family == "Gaussian")
+      {
+        sim.gam1 <- mgcv::gam(y ~ s(x, k=10),
+                             family = gaussian(link = "identity"),
+                             method = lambda,
+                             data = sim)
+        sim.gam2 <- mgcv::gam(y ~ s(x, k=10) + s(z, k=10),
+                             family = gaussian(link = "identity"),
+                             method = lambda,
+                             data = sim)
+      }
+      
+      if (response_family == "Binomial")
+      {
+        sim.gam1 <- mgcv::gam(y ~ s(x, k=10),
+                             family = binomial(link = "logit"),
+                             method = lambda,
+                             data = sim)
+        sim.gam2 <- mgcv::gam(y ~ s(x, k=10) + s(z, k=10),
+                             family = binomial(link = "logit"),
+                             method = lambda,
+                             data = sim)
+      }
+      
+      if (response_family == "Poisson")
+      {
+        sim.gam1 <- mgcv::gam(y ~ s(x, k=10),
+                             family = poisson(link = "log"),
+                             method = lambda,
+                             data = sim)
+        sim.gam2 <- mgcv::gam(y ~ s(x, k=10) + s(z, k=10),
+                             family = poisson(link = "log"),
+                             method = lambda,
+                             data = sim)
+      }
+      
+      if (response_family == "Gamma")
+      {
+        sim.gam1 <- mgcv::gam(y ~ s(x, k=10),
+                             family = Gamma(link = "log"),
+                             method = lambda,
+                             data = sim)
+        sim.gam2 <- mgcv::gam(y ~ s(x, k=10) + s(z, k=10),
+                             family = Gamma(link = "log"),
+                             method = lambda,
+                             data = sim)
+      }
+      
+      p_values_x_1[k] <- summary(sim.gam1)$s.table["s(x)", "p-value"]
+      p_values_x_2[k] <- summary(sim.gam2)$s.table["s(x)", "p-value"]
+      
+        
+      } # END OF m SIMULATIONS LOOP
+      
     # export plot
-    plot(ecdf(p_values_x),
+    plot(ecdf(p_values_x_1),
+         col = "black",
          xlim = c(0, 0.1),
          ylim = c(0, 0.1),
-         main = paste0("s(x)"),
+         main = paste0(response_family),
          xlab = "p-value", 
          ylab = "Empirical CDF")
-    
-    # reference line of the CDF of U(0,1)
-    abline(0, 1, lty=2)
-    
-    # MCSE bands
-    lines(p_mcse_plot,upper,lty=3,col="grey40")
-    lines(p_mcse_plot,lower,lty=3,col="grey40")
-    
-    # export plot
-    plot(ecdf(p_values_z),
-         xlim = c(0, 0.1),
-         ylim = c(0, 0.1),
-         main = paste0("s(z)"),
-         xlab = "p-value", 
-         ylab = "Empirical CDF")
+    lines(ecdf(p_values_x_2), col = "red")
     
     # reference line of the CDF of U(0,1)
     abline(0, 1, lty = 2)
@@ -891,9 +716,161 @@ library(xtable)
     lines(p_mcse_plot,upper,lty=3,col="grey40")
     lines(p_mcse_plot,lower,lty=3,col="grey40")
     
-    dev.off()
-  }
-} # END OF SIMULATION 2.2
-} # END OF GAMMA SIMULATION
+  } # END OF RESPONSE LOOP
+  
+  dev.off()
+  
+} # END OF ONE VS TWO NULL COMPARISON
 
 
+
+# RESPONSE PARAMETER PLOT ------------------------------------------------------
+{
+  # 2x2 grid of plots for f1
+  # Each panel shows empirical rejection rates at alpha = 0.05 and 0.10
+  # MCSE bands
+  m <- 5000
+  alpha05 <- 0.05
+  alpha10 <- 0.10
+  
+  mcse05 <- sqrt(alpha05 * (1 - alpha05) / m)
+  mcse10 <- sqrt(alpha10 * (1 - alpha10) / m)
+  
+  upper05 <- alpha05 + 1.96 * mcse05
+  lower05 <- alpha05 - 1.96 * mcse05
+  
+  upper10 <- alpha10 + 1.96 * mcse10
+  lower10 <- alpha10 - 1.96 * mcse10
+  
+  # line colours
+  col_05 <- "black"
+  col_10 <- "red"
+  
+  pdf("sim2_varf1.pdf", width = 9, height = 7)
+  
+  par(mfrow = c(2, 2), mar = c(4.5, 4.5, 2.5, 1), oma = c(0, 0, 1, 0))
+  
+  # GAUSSIAN
+  sigma_vals <- c(0.25, 0.50, 1.00, 2.00, 5.00)
+  gauss_05 <- c(0.055, 0.059, 0.054, 0.051, 0.047)
+  gauss_10 <- c(0.108, 0.118, 0.107, 0.105, 0.105)
+  
+  plot(sigma_vals, gauss_05,
+       type = "l", pch = 16, lwd = 2,
+       col = col_05,
+       ylim = c(0.04, 0.125),
+       xlab = expression("Error s.d., " * sigma),
+       ylab = expression(hat(F)),
+       main = "Gaussian")
+  
+  lines(sigma_vals, gauss_10, type = "l", pch = 17, lwd = 2, col = col_10)
+  
+  abline(h = alpha05, lty = 2, lwd = 1.2)
+  abline(h = alpha10, lty = 2, lwd = 1.2)
+  abline(h = upper05, lty = 3, col = "grey40")
+  abline(h = lower05, lty = 3, col = "grey40")
+  abline(h = upper10, lty = 3, col = "grey40")
+  abline(h = lower10, lty = 3, col = "grey40")
+  
+  # BINOMIAL
+  q_vals <- c(0.3, 0.5, 0.7)
+  binom_05 <- c(0.055, 0.051, 0.051)
+  binom_10 <- c(0.119, 0.110, 0.115)
+  
+  plot(q_vals, binom_05,
+       type = "l", pch = 16, lwd = 2,
+       col = col_05,
+       ylim = c(0.04, 0.125),
+       xlab = expression("Success probability, " * q),
+       ylab = expression(hat(F)),
+       main = "Binomial")
+  
+  lines(q_vals, binom_10, type = "l", pch = 17, lwd = 2, col = col_10)
+  
+  abline(h = alpha05, lty = 2, lwd = 1.2)
+  abline(h = alpha10, lty = 2, lwd = 1.2)
+  abline(h = upper05, lty = 3, col = "grey40")
+  abline(h = lower05, lty = 3, col = "grey40")
+  abline(h = upper10, lty = 3, col = "grey40")
+  abline(h = lower10, lty = 3, col = "grey40")
+  
+  # POISSON
+  lambda_vals <- c(3, 5, 7, 10)
+  pois_05 <- c(0.052, 0.051, 0.058, 0.054)
+  pois_10 <- c(0.114, 0.103, 0.117, 0.106)
+  
+  plot(lambda_vals, pois_05,
+       type = "l", pch = 16, lwd = 2,
+       col = col_05,
+       ylim = c(0.04, 0.125),
+       xlab = expression("Poisson mean, " * lambda),
+       ylab = expression(hat(F)),
+       main = "Poisson")
+  
+  lines(lambda_vals, pois_10, type = "l", pch = 17, lwd = 2, col = col_10)
+  
+  abline(h = alpha05, lty = 2, lwd = 1.2)
+  abline(h = alpha10, lty = 2, lwd = 1.2)
+  abline(h = upper05, lty = 3, col = "grey40")
+  abline(h = lower05, lty = 3, col = "grey40")
+  abline(h = upper10, lty = 3, col = "grey40")
+  abline(h = lower10, lty = 3, col = "grey40")
+  
+  # GAMMA
+  mu_vals <- c(3, 5, 7, 10)
+  gamma_05 <- c(0.053, 0.052, 0.051, 0.055)
+  gamma_10 <- c(0.111, 0.110, 0.105, 0.112)
+  
+  plot(mu_vals, gamma_05,
+       type = "l", pch = 16, lwd = 2,
+       col = col_05,
+       ylim = c(0.04, 0.125),
+       xlab = expression("Gamma mean, " * mu),
+       ylab = expression(hat(F)),
+       main = "Gamma")
+  
+  lines(mu_vals, gamma_10, type = "l", pch = 17, lwd = 2, col = col_10)
+  
+  abline(h = alpha05, lty = 2, lwd = 1.2)
+  abline(h = alpha10, lty = 2, lwd = 1.2)
+  abline(h = upper05, lty = 3, col = "grey40")
+  abline(h = lower05, lty = 3, col = "grey40")
+  abline(h = upper10, lty = 3, col = "grey40")
+  abline(h = lower10, lty = 3, col = "grey40")
+  
+  dev.off()
+}
+
+
+results_n <- do.call(
+  rbind,
+  lapply(results_list_n, function(x) do.call(rbind, x))
+)
+rownames(results_n) <- NULL
+print(results_n)
+
+writeLines("\n")
+
+results_gaussian <- do.call(rbind, results_list_gaussian)
+rownames(results_gaussian) <- NULL
+print(results_gaussian)
+
+writeLines("\n")
+
+results_binomial <- do.call(rbind, results_list_binomial)
+rownames(results_binomial) <- NULL
+print(results_binomial)
+
+writeLines("\n")
+
+results_poisson <- do.call(rbind, results_list_poisson)
+rownames(results_poisson) <- NULL
+print(results_poisson)
+
+writeLines("\n")
+
+results_gamma <- do.call(rbind, results_list_gamma)
+rownames(results_gamma) <- NULL
+print(results_gamma)
+
+}

@@ -1,8 +1,7 @@
 # EVALUATING SIGNIFICANCE TESTS IN GENERALISED ADDITIVE MODELS -----------------
 # SIMULATION SCENARIO 3
-
+{
 library(mgcv)
-library(xtable)
 twopi <- 2*pi
 
 # MCSE bands for all plots (given m=5000)
@@ -14,7 +13,8 @@ twopi <- 2*pi
   lower <- p_mcse_plot - 1.96*mcse
 }
 
-
+results_list_n <- vector("list", 4)
+results_list_rho <- vector("list", 4)
 
 # GAUSSIAN CASE ----------------------------------------------------------------
 {
@@ -22,10 +22,6 @@ twopi <- 2*pi
 {
   # set seed for reproducibility
   set.seed(121)
-  
-  # prepare plot grid and pdf file to be saved to
-  pdf("sim31.pdf", width = 8, height = 8)
-  par(mfrow=c(2,2))
   
   # fixed parameters
   m <- 5000
@@ -54,10 +50,9 @@ twopi <- 2*pi
     p_values <- numeric(m)
     edf <- numeric(m)
     beta <- numeric(m)
-    concurv <- numeric(m)
     
     # construct z and y for current rho
-    z_mat <- rho * g_mat + sqrt(1 - rho^2) * u_mat
+    z_mat <- scale(rho * g_mat + sqrt(1 - rho^2) * u_mat)
     y_mat <- z_mat + eps_mat
     
     # loop over number of simulation replications
@@ -75,11 +70,11 @@ twopi <- 2*pi
       p_values[j] <- s_tab["s(x)", "p-value"]
       edf[j] <- s_tab["s(x)", "edf"]
       beta[j] <- coef(sim.gam)["z"]
-      concurv[j] <- mgcv::concurvity(sim.gam, full = TRUE)["estimate", "s(x)"]
     }
     
     # write row of data frame
     row_df <- data.frame(
+      Response     = "Gaussian",
       rho          = rho,
       F1           = mean(p_values <= 0.01),
       F5           = mean(p_values <= 0.05),
@@ -87,40 +82,20 @@ twopi <- 2*pi
       edf_mean     = mean(edf),
       edf_sd       = sd(edf),
       beta_mean    = mean(beta),
-      beta_sd      = sd(beta),
-      concurv_mean = mean(concurv),
-      concurv_sd   = sd(concurv)
+      beta_sd      = sd(beta)
     )
     # write this row to corresponding element of list
     results_list[[i]] <- row_df
     
-    # export plot
-    plot(ecdf(p_values),
-         xlim = c(0, 0.1),
-         ylim = c(0, 0.1),
-         main = paste("rho =", rho),
-         xlab = "p-value", 
-         ylab = "Empirical CDF")
-    
-    # reference line of the CDF of U(0,1)
-    abline(0, 1, lty = 2)
-    
-    # MCSE bands
-    lines(p_mcse_plot,upper,lty=3,col="grey40")
-    lines(p_mcse_plot,lower,lty=3,col="grey40")
-    
   }
-  dev.off()
 } # END OF SIMULATION 3.1
-
+  
+results_list_rho[[1]] <- results_list
+  
 ## 3.2 EFFECT OF SAMPLE SIZE ---------------------------------------------------
 {
   # set seed for reproducibility
   set.seed(122)
-  
-  # prepare plot grid and pdf file to be saved to
-  pdf("sim32.pdf", width = 12, height = 4)
-  par(mfrow=c(1,3))
   
   # fixed parameters
   m <- 5000
@@ -143,14 +118,13 @@ twopi <- 2*pi
     p_values <- numeric(m)
     edf <- numeric(m)
     beta <- numeric(m)
-    concurv <- numeric(m)
     
     # DGP for current n
     x_mat <- matrix(runif(n * m, min = 0, max = 1), nrow = n, ncol = m)
     u_mat <- matrix(rnorm(n * m, mean = 0, sd = 1), nrow = n, ncol = m)
     eps_mat <- matrix(rnorm(n * m, mean = 0, sd = sigma), nrow = n, ncol = m)
     g_mat <- scale(sin(twopi * x_mat))
-    z_mat <- rho * g_mat + sqrt(1 - rho^2) * u_mat
+    z_mat <- scale(rho * g_mat + sqrt(1 - rho^2) * u_mat)
     y_mat <- z_mat + eps_mat
     
     # loop over number of simulation replications
@@ -168,11 +142,11 @@ twopi <- 2*pi
       p_values[j] <- s_tab["s(x)", "p-value"]
       edf[j] <- s_tab["s(x)", "edf"]
       beta[j] <- coef(sim.gam)["z"]
-      concurv[j] <- mgcv::concurvity(sim.gam, full = TRUE)["estimate", "s(x)"]
     }
     
     # write row of data frame
     row_df <- data.frame(
+      Response     = "Gaussian",
       n            = n,
       F1           = mean(p_values <= 0.01),
       F5           = mean(p_values <= 0.05),
@@ -180,31 +154,16 @@ twopi <- 2*pi
       edf_mean     = mean(edf),
       edf_sd       = sd(edf),
       beta_mean    = mean(beta),
-      beta_sd      = sd(beta),
-      concurv_mean = mean(concurv),
-      concurv_sd   = sd(concurv)
+      beta_sd      = sd(beta)
     )
     # write this row to corresponding element of list
     results_list[[i]] <- row_df
     
-    # export plot
-    plot(ecdf(p_values),
-         xlim = c(0, 0.1),
-         ylim = c(0, 0.1),
-         main = paste("n =", n),
-         xlab = "p-value", 
-         ylab = "Empirical CDF")
-    
-    # reference line of the CDF of U(0,1)
-    abline(0, 1, lty = 2)
-    
-    # MCSE bands
-    lines(p_mcse_plot,upper,lty=3,col="grey40")
-    lines(p_mcse_plot,lower,lty=3,col="grey40")
-    
   }
-  dev.off()
 } # END OF SIMULATION 3.2
+
+results_list_n[[1]] <- results_list
+
 } # END OF GAUSSIAN SIMULATION
 
 
@@ -215,10 +174,6 @@ twopi <- 2*pi
 {
   # set seed for reproducibility
   set.seed(221)
-  
-  # prepare plot grid and pdf file to be saved to
-  pdf("sim31.pdf", width = 8, height = 8)
-  par(mfrow=c(2,2))
   
   # fixed parameters
   m <- 5000
@@ -247,7 +202,6 @@ twopi <- 2*pi
     p_values <- numeric(m)
     edf <- numeric(m)
     beta <- numeric(m)
-    concurv <- numeric(m)
     
     # construct z and y for current rho
     z_mat <- scale(rho * g_mat + sqrt(1 - rho^2) * u_mat)
@@ -276,11 +230,11 @@ twopi <- 2*pi
       p_values[j] <- s_tab["s(x)", "p-value"]
       edf[j] <- s_tab["s(x)", "edf"]
       beta[j] <- coef(sim.gam)["z"]
-      concurv[j] <- mgcv::concurvity(sim.gam, full = TRUE)["estimate", "s(x)"]
     }
     
     # write row of data frame
     row_df <- data.frame(
+      Response     = "Binomial",
       rho          = rho,
       F1           = mean(p_values <= 0.01),
       F5           = mean(p_values <= 0.05),
@@ -288,40 +242,20 @@ twopi <- 2*pi
       edf_mean     = mean(edf),
       edf_sd       = sd(edf),
       beta_mean    = mean(beta),
-      beta_sd      = sd(beta),
-      concurv_mean = mean(concurv),
-      concurv_sd   = sd(concurv)
+      beta_sd      = sd(beta)
     )
     # write this row to corresponding element of list
     results_list[[i]] <- row_df
     
-    # export plot
-    plot(ecdf(p_values),
-         xlim = c(0, 0.1),
-         ylim = c(0, 0.1),
-         main = paste("rho =", rho),
-         xlab = "p-value", 
-         ylab = "Empirical CDF")
-    
-    # reference line of the CDF of U(0,1)
-    abline(0, 1, lty = 2)
-    
-    # MCSE bands
-    lines(p_mcse_plot,upper,lty=3,col="grey40")
-    lines(p_mcse_plot,lower,lty=3,col="grey40")
-    
   }
-  dev.off()
 } # END OF SIMULATION 3.1
 
+results_list_rho[[2]] <- results_list
+  
 ## 3.2 EFFECT OF SAMPLE SIZE
 {
   # set seed for reproducibility
   set.seed(222)
-  
-  # prepare plot grid and pdf file to be saved to
-  pdf("sim32.pdf", width = 12, height = 4)
-  par(mfrow=c(1,3))
   
   # fixed parameters
   m <- 5000
@@ -344,7 +278,6 @@ twopi <- 2*pi
     p_values <- numeric(m)
     edf <- numeric(m)
     beta <- numeric(m)
-    concurv <- numeric(m)
     
     # DGP
     x_mat <- matrix(runif(n * m, min = 0, max = 1), nrow = n, ncol = m)
@@ -376,11 +309,11 @@ twopi <- 2*pi
       p_values[j] <- s_tab["s(x)", "p-value"]
       edf[j] <- s_tab["s(x)", "edf"]
       beta[j] <- coef(sim.gam)["z"]
-      concurv[j] <- mgcv::concurvity(sim.gam, full = TRUE)["estimate", "s(x)"]
     }
     
     # write row of data frame
     row_df <- data.frame(
+      Response     = "Binomial",
       n            = n,
       F1           = mean(p_values <= 0.01),
       F5           = mean(p_values <= 0.05),
@@ -388,31 +321,16 @@ twopi <- 2*pi
       edf_mean     = mean(edf),
       edf_sd       = sd(edf),
       beta_mean    = mean(beta),
-      beta_sd      = sd(beta),
-      concurv_mean = mean(concurv),
-      concurv_sd   = sd(concurv)
+      beta_sd      = sd(beta)
     )
     # write this row to corresponding element of list
     results_list[[i]] <- row_df
     
-    # export plot
-    plot(ecdf(p_values),
-         xlim = c(0, 0.1),
-         ylim = c(0, 0.1),
-         main = paste("n =", n),
-         xlab = "p-value", 
-         ylab = "Empirical CDF")
-    
-    # reference line of the CDF of U(0,1)
-    abline(0, 1, lty = 2)
-    
-    # MCSE bands
-    lines(p_mcse_plot,upper,lty=3,col="grey40")
-    lines(p_mcse_plot,lower,lty=3,col="grey40")
-    
   }
-  dev.off()
 } # END OF SIMULATION 3.2
+
+results_list_n[[2]] <- results_list
+
 } # END OF BINOMIAL SIMULATION
 
 
@@ -423,10 +341,6 @@ twopi <- 2*pi
 {
   # set seed for reproducibility
   set.seed(321)
-  
-  # prepare plot grid and pdf file to be saved to
-  pdf("sim31.pdf", width = 8, height = 8)
-  par(mfrow=c(2,2))
   
   # fixed parameters
   m <- 5000
@@ -454,7 +368,6 @@ twopi <- 2*pi
     p_values <- numeric(m)
     edf <- numeric(m)
     beta <- numeric(m)
-    concurv <- numeric(m)
     
     # construct z and y for current rho
     z_mat <- scale(rho * g_mat + sqrt(1 - rho^2) * u_mat)
@@ -484,11 +397,11 @@ twopi <- 2*pi
       p_values[j] <- s_tab["s(x)", "p-value"]
       edf[j] <- s_tab["s(x)", "edf"]
       beta[j] <- coef(sim.gam)["z"]
-      concurv[j] <- mgcv::concurvity(sim.gam, full = TRUE)["estimate", "s(x)"]
     }
     
     # write row of data frame
     row_df <- data.frame(
+      Response     = "Poisson",
       rho          = rho,
       F1           = mean(p_values <= 0.01),
       F5           = mean(p_values <= 0.05),
@@ -496,40 +409,19 @@ twopi <- 2*pi
       edf_mean     = mean(edf),
       edf_sd       = sd(edf),
       beta_mean    = mean(beta),
-      beta_sd      = sd(beta),
-      concurv_mean = mean(concurv),
-      concurv_sd   = sd(concurv)
+      beta_sd      = sd(beta)
     )
     # write this row to corresponding element of list
     results_list[[i]] <- row_df
-    
-    # export plot
-    plot(ecdf(p_values),
-         xlim = c(0, 0.1),
-         ylim = c(0, 0.1),
-         main = paste("rho =", rho),
-         xlab = "p-value", 
-         ylab = "Empirical CDF")
-    
-    # reference line of the CDF of U(0,1)
-    abline(0, 1, lty = 2)
-    
-    # MCSE bands
-    lines(p_mcse_plot,upper,lty=3,col="grey40")
-    lines(p_mcse_plot,lower,lty=3,col="grey40")
-    
   }
-  dev.off()
 } # END OF SIMULATION 3.1
+
+results_list_rho[[3]] <- results_list  
 
 ## 3.2 EFFECT OF SAMPLE SIZE ---------------------------------------------------
 {
   # set seed for reproducibility
   set.seed(322)
-  
-  # prepare plot grid and pdf file to be saved to
-  pdf("sim32.pdf", width = 12, height = 4)
-  par(mfrow=c(1,3))
   
   # fixed parameters
   m <- 5000
@@ -552,7 +444,6 @@ twopi <- 2*pi
     p_values <- numeric(m)
     edf <- numeric(m)
     beta <- numeric(m)
-    concurv <- numeric(m)
     
     # DGP
     x_mat <- matrix(runif(n * m, min = 0, max = 1), nrow = n, ncol = m)
@@ -585,11 +476,11 @@ twopi <- 2*pi
       p_values[j] <- s_tab["s(x)", "p-value"]
       edf[j] <- s_tab["s(x)", "edf"]
       beta[j] <- coef(sim.gam)["z"]
-      concurv[j] <- mgcv::concurvity(sim.gam, full = TRUE)["estimate", "s(x)"]
     }
     
     # write row of data frame
     row_df <- data.frame(
+      Response     = "Poisson",
       n            = n,
       F1           = mean(p_values <= 0.01),
       F5           = mean(p_values <= 0.05),
@@ -597,31 +488,15 @@ twopi <- 2*pi
       edf_mean     = mean(edf),
       edf_sd       = sd(edf),
       beta_mean    = mean(beta),
-      beta_sd      = sd(beta),
-      concurv_mean = mean(concurv),
-      concurv_sd   = sd(concurv)
+      beta_sd      = sd(beta)
     )
     # write this row to corresponding element of list
     results_list[[i]] <- row_df
-    
-    # export plot
-    plot(ecdf(p_values),
-         xlim = c(0, 0.1),
-         ylim = c(0, 0.1),
-         main = paste("n =", n),
-         xlab = "p-value", 
-         ylab = "Empirical CDF")
-    
-    # reference line of the CDF of U(0,1)
-    abline(0, 1, lty = 2)
-    
-    # MCSE bands
-    lines(p_mcse_plot,upper,lty=3,col="grey40")
-    lines(p_mcse_plot,lower,lty=3,col="grey40")
-    
   }
-  dev.off()
 } # END OF SIMULATION 3.2
+  
+results_list_n[[3]] <- results_list
+  
 } # END OF POISSON SIMULATION
 
 
@@ -632,10 +507,6 @@ twopi <- 2*pi
 {
   # set seed for reproducibility
   set.seed(421)
-  
-  # prepare plot grid and pdf file to be saved to
-  pdf("sim31.pdf", width = 8, height = 8)
-  par(mfrow=c(2,2))
   
   # fixed parameters
   m <- 5000
@@ -664,7 +535,6 @@ twopi <- 2*pi
     p_values <- numeric(m)
     edf <- numeric(m)
     beta <- numeric(m)
-    concurv <- numeric(m)
     
     # construct z and y for current rho
     z_mat <- scale(rho * g_mat + sqrt(1 - rho^2) * u_mat)
@@ -695,11 +565,11 @@ twopi <- 2*pi
       p_values[j] <- s_tab["s(x)", "p-value"]
       edf[j] <- s_tab["s(x)", "edf"]
       beta[j] <- coef(sim.gam)["z"]
-      concurv[j] <- mgcv::concurvity(sim.gam, full = TRUE)["estimate", "s(x)"]
     }
     
     # write row of data frame
     row_df <- data.frame(
+      Response     = "Gamma",
       rho          = rho,
       F1           = mean(p_values <= 0.01),
       F5           = mean(p_values <= 0.05),
@@ -707,40 +577,19 @@ twopi <- 2*pi
       edf_mean     = mean(edf),
       edf_sd       = sd(edf),
       beta_mean    = mean(beta),
-      beta_sd      = sd(beta),
-      concurv_mean = mean(concurv),
-      concurv_sd   = sd(concurv)
+      beta_sd      = sd(beta)
     )
     # write this row to corresponding element of list
     results_list[[i]] <- row_df
-    
-    # export plot
-    plot(ecdf(p_values),
-         xlim = c(0, 0.1),
-         ylim = c(0, 0.1),
-         main = paste("rho =", rho),
-         xlab = "p-value", 
-         ylab = "Empirical CDF")
-    
-    # reference line of the CDF of U(0,1)
-    abline(0, 1, lty = 2)
-    
-    # MCSE bands
-    lines(p_mcse_plot,upper,lty=3,col="grey40")
-    lines(p_mcse_plot,lower,lty=3,col="grey40")
-    
   }
-  dev.off()
 } # END OF SIMULATION 3.1
-
+  
+results_list_rho[[4]] <- results_list
+  
 ## 3.2 EFFECT OF SAMPLE SIZE ---------------------------------------------------
 {
   # set seed for reproducibility
   set.seed(422)
-  
-  # prepare plot grid and pdf file to be saved to
-  pdf("sim32.pdf", width = 12, height = 4)
-  par(mfrow=c(1,3))
   
   # fixed parameters
   m <- 5000
@@ -764,7 +613,6 @@ twopi <- 2*pi
     p_values <- numeric(m)
     edf <- numeric(m)
     beta <- numeric(m)
-    concurv <- numeric(m)
     
     # DGP
     x_mat <- matrix(runif(n * m, min = 0, max = 1), nrow = n, ncol = m)
@@ -779,7 +627,7 @@ twopi <- 2*pi
     # print data check (ensures 'well behaved' data)
     cat("\nn =", n,
         "\nmu in [", round(min(mu_mat), 3), ",", round(max(mu_mat), 3), "]",
-        "\nmedian mean(lambda) across reps =", round(median(colMeans(mu_mat)), 3),
+        "\nmedian mean(mu) across reps =", round(median(colMeans(mu_mat)), 3),
         "\nmedian mean(y) across reps =", round(median(colMeans(y_mat)), 3),
         "\nmax response observed =", max(y_mat), "\n")
     
@@ -798,11 +646,11 @@ twopi <- 2*pi
       p_values[j] <- s_tab["s(x)", "p-value"]
       edf[j] <- s_tab["s(x)", "edf"]
       beta[j] <- coef(sim.gam)["z"]
-      concurv[j] <- mgcv::concurvity(sim.gam, full = TRUE)["estimate", "s(x)"]
     }
     
     # write row of data frame
     row_df <- data.frame(
+      Response     = "Gamma",
       n            = n,
       F1           = mean(p_values <= 0.01),
       F5           = mean(p_values <= 0.05),
@@ -810,31 +658,33 @@ twopi <- 2*pi
       edf_mean     = mean(edf),
       edf_sd       = sd(edf),
       beta_mean    = mean(beta),
-      beta_sd      = sd(beta),
-      concurv_mean = mean(concurv),
-      concurv_sd   = sd(concurv)
+      beta_sd      = sd(beta)
     )
     # write this row to corresponding element of list
     results_list[[i]] <- row_df
-    
-    # export plot
-    plot(ecdf(p_values),
-         xlim = c(0, 0.1),
-         ylim = c(0, 0.1),
-         main = paste("n =", n),
-         xlab = "p-value", 
-         ylab = "Empirical CDF")
-    
-    # reference line of the CDF of U(0,1)
-    abline(0, 1, lty = 2)
-    
-    # MCSE bands
-    lines(p_mcse_plot,upper,lty=3,col="grey40")
-    lines(p_mcse_plot,lower,lty=3,col="grey40")
-    
   }
-  dev.off()
 } # END OF SIMULATION 3.2
+
+results_list_n[[4]] <- results_list
+
 } # END OF GAMMA SIMULATION
 
 
+
+results_n <- do.call(
+  rbind,
+  lapply(results_list_n, function(x) do.call(rbind, x))
+)
+rownames(results_n) <- NULL
+print(results_n)
+
+writeLines("\n")
+
+results_rho <- do.call(
+  rbind,
+  lapply(results_list_rho, function(x) do.call(rbind, x))
+)
+rownames(results_rho) <- NULL
+print(results_rho)
+
+}
